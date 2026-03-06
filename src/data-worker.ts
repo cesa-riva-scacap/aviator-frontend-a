@@ -15,7 +15,6 @@ let ticksReceivedThisSecond = 0;
 self.onmessage = (event: MessageEvent<ClientCommand>) => {
   if (event.data.type === "TOGGLE_PAUSE") {
     isPaused = !isPaused;
-    console.log(`Worker received command: ${isPaused ? "PAUSE" : "RESUME"}`);
   }
 };
 

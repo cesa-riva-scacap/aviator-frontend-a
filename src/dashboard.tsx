@@ -77,7 +77,6 @@ export const Dashboard = () => {
         </span>
       </div>
 
-      {/* RISK PANEL: Target < 50ms responsiveness */}
       <div className="h-20">
         {risk && (
           <Alert
@@ -147,7 +146,6 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* SYSTEM METRICS PANEL */}
         <Card className="h-fit border-slate-800 bg-slate-900 text-white shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between border-b border-slate-800 pb-4">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-slate-400">
