@@ -5,27 +5,37 @@
  * Instead of sending 40,000 messages to React, we send 60 messages per second (one per frame)
  */
 
-import type { Tick, WsMessage } from "./types";
+import type { Tick, WorkerMessage, WsMessage } from "./types";
 
 const priceMap: Map<string, Tick> = new Map();
 
 const socket = new WebSocket("ws://127.0.0.1:8080/ws");
 
-socket.onmessage = (event: MessageEvent) => {
-  const data = JSON.parse(event.data) as WsMessage;
+socket.onmessage = (event: MessageEvent<string>) => {
+  let data: WsMessage;
+  try {
+    data = JSON.parse(event.data) as WsMessage;
+  } catch (error) {
+    console.error("Worker failed to parse WebSocket payload:", error);
+    return;
+  }
 
-  if (data.type === "Batch") {
+  const { type, payload } = data;
+
+  if (type === "Batch") {
     // 1. BATCHING: Update the map with the latest values.
     // If AAPL ticked 50 times in this batch, we only keep the 50th one.
-    data.payload.forEach((tick) => {
+    payload.forEach((tick) => {
       priceMap.set(tick.symbol, tick);
     });
-  } else if (data.type === "Risk") {
+  } else if (type === "Risk") {
     // 2. PRIORITY: Risk alerts bypass the timer and go to React IMMEDIATELY
-    self.postMessage({
+    const riskMessage: WorkerMessage = {
       type: "RISK_UPDATE",
-      payload: data.payload,
-    });
+      payload: payload,
+    };
+
+    self.postMessage(riskMessage);
   }
 };
 
@@ -33,12 +43,15 @@ socket.onmessage = (event: MessageEvent) => {
 // This ensures the main thread is never overwhelmed by the 40k/sec firehose.
 setInterval(
   () => {
-    const latestTicks = Array.from(priceMap.values());
     if (priceMap.size > 0) {
-      self.postMessage({
+      const latestTicks = Array.from(priceMap.values());
+
+      const message: WorkerMessage = {
         type: "BATCH_UPDATE",
         payload: latestTicks,
-      });
+      };
+
+      self.postMessage(message);
     }
   },
   1000 / 60, // 60 times per second
