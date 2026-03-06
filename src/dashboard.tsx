@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { WorkerMessageType, type RiskAlert, type Tick } from "./types";
 import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import { ShieldAlert } from "lucide-react";
@@ -8,10 +8,14 @@ export const Dashboard = () => {
   const [prices, setPrices] = useState<Tick[]>([]);
   const [risk, setRisk] = useState<RiskAlert | null>(null);
 
-  useEffect(() => {
-    const worker = new Worker(new URL("./data-worker.ts", import.meta.url));
+  const workerRef = useRef<Worker | null>(null);
 
-    worker.onmessage = (event: MessageEvent) => {
+  useEffect(() => {
+    workerRef.current = new Worker(
+      new URL("./data-worker.ts", import.meta.url),
+    );
+
+    workerRef.current.onmessage = (event: MessageEvent) => {
       const message = event.data;
 
       if (message.type === WorkerMessageType.RISK_UPDATE) {
@@ -28,7 +32,7 @@ export const Dashboard = () => {
     };
 
     return () => {
-      worker.terminate();
+      workerRef.current?.terminate();
     };
   }, []);
 
