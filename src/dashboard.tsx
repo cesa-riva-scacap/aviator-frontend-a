@@ -1,14 +1,40 @@
 import { useEffect, useRef, useState } from "react";
 import { WorkerMessageType, type RiskAlert, type Tick } from "./types";
 import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
-import { ShieldAlert } from "lucide-react";
+import { Activity, PauseCircle, PlayCircle, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 
 export const Dashboard = () => {
   const [prices, setPrices] = useState<Tick[]>([]);
   const [risk, setRisk] = useState<RiskAlert | null>(null);
+  const [fps, setFps] = useState(0);
+  const [workerMetrics, setWorkerMetrics] = useState({
+    throughput: 0,
+    isPaused: false,
+  });
 
   const workerRef = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    let frameCount = 0;
+    let lastTime = performance.now();
+    let animationFrameId: number;
+
+    const countFrames = () => {
+      frameCount++;
+      const now = performance.now();
+      if (now - lastTime >= 1000) {
+        setFps(frameCount);
+        frameCount = 0;
+        lastTime = now;
+      }
+      animationFrameId = requestAnimationFrame(countFrames);
+    };
+
+    animationFrameId = requestAnimationFrame(countFrames);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
 
   useEffect(() => {
     workerRef.current = new Worker(
@@ -24,10 +50,10 @@ export const Dashboard = () => {
         setTimeout(() => {
           setRisk(null);
         }, 2500);
-      }
-
-      if (message.type === WorkerMessageType.BATCH_UPDATE) {
+      } else if (message.type === WorkerMessageType.BATCH_UPDATE) {
         setPrices(message.payload);
+      } else if (message.type === WorkerMessageType.METRICS_UPDATE) {
+        setWorkerMetrics(message.payload);
       }
     };
 
@@ -35,6 +61,10 @@ export const Dashboard = () => {
       workerRef.current?.terminate();
     };
   }, []);
+
+  const handleToggleWorker = () => {
+    workerRef.current?.postMessage({ type: "TOGGLE_PAUSE" });
+  };
 
   return (
     <div className="min-h-screen space-y-6 bg-slate-950 p-8 font-sans text-white">
@@ -119,33 +149,54 @@ export const Dashboard = () => {
 
         {/* SYSTEM METRICS PANEL */}
         <Card className="h-fit border-slate-800 bg-slate-900 text-white shadow-xl">
-          <CardHeader className="border-b border-slate-800 pb-4">
-            <CardTitle className="text-sm font-medium text-slate-400">
-              System Metrics
+          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-800 pb-4">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-slate-400">
+              <Activity className="h-4 w-4" /> Live Telemetry
             </CardTitle>
+            <button
+              onClick={handleToggleWorker}
+              className={`rounded-md p-1.5 transition-colors ${workerMetrics.isPaused ? "bg-amber-500/20 text-amber-500 hover:bg-amber-500/30" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+              title={workerMetrics.isPaused ? "Resume Data" : "Pause Data"}
+            >
+              {workerMetrics.isPaused ? (
+                <PlayCircle className="h-5 w-5" />
+              ) : (
+                <PauseCircle className="h-5 w-5" />
+              )}
+            </button>
           </CardHeader>
           <CardContent className="space-y-6 pt-6 font-mono text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Target Throughput</span>
-              <span className="rounded bg-emerald-400/10 px-2 py-1 font-bold text-emerald-400">
-                40,000 / sec
+              <span className="text-slate-400">Actual Throughput</span>
+              <span
+                className={`rounded px-2 py-1 font-bold transition-colors ${workerMetrics.throughput > 0 ? "bg-emerald-400/10 text-emerald-400" : "bg-slate-800 text-slate-500"}`}
+              >
+                {workerMetrics.throughput.toLocaleString()} / sec
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">UI Render Target</span>
-              <span className="rounded bg-blue-400/10 px-2 py-1 font-bold text-blue-400">
-                60 FPS (~16ms)
+              <span className="text-slate-400">UI Paint Rate (FPS)</span>
+              <span
+                className={`rounded px-2 py-1 font-bold ${fps >= 55 ? "bg-blue-400/10 text-blue-400" : "bg-amber-400/10 text-amber-400"}`}
+              >
+                {fps} FPS
               </span>
             </div>
             <div className="flex items-center justify-between border-t border-slate-800 pt-4">
               <span className="text-slate-400">Worker Status</span>
-              <span className="flex items-center gap-2 text-green-500">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+              {workerMetrics.isPaused ? (
+                <span className="flex items-center gap-2 font-bold text-amber-500">
+                  Paused
                 </span>
-                Active
-              </span>
+              ) : (
+                <span className="flex items-center gap-2 text-green-500">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+                  </span>
+                  Processing
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
