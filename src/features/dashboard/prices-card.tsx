@@ -66,16 +66,16 @@ const PricesCard = ({ prices }: Props) => {
                       className="absolute flex w-full border-b border-slate-800/50 transition-colors hover:bg-slate-800/20"
                       style={{
                         height: `${virtualRow.size}px`,
-                        transform: `translateY(${virtualRow.start}px)`, // Position the row exactly where it belongs
+                        transform: `translateY(${virtualRow.start}px)`,
                       }}
                     >
-                      <td className="flex w-1/3 items-center px-4 py-2 font-bold text-blue-400">
+                      <td className="text-secondary flex w-1/3 items-center px-4 py-2 font-bold">
                         {p.symbol}
                       </td>
-                      <td className="flex w-1/3 items-center justify-end px-4 py-2 text-right text-green-400">
+                      <td className="text-primary flex w-1/3 items-center justify-end px-4 py-2 text-right">
                         {p.price.toFixed(2)}
                       </td>
-                      <td className="flex w-1/3 items-center justify-end px-4 py-2 text-right text-slate-300">
+                      <td className="text-secondary flex w-1/3 items-center justify-end px-4 py-2 text-right">
                         {p.volume.toLocaleString()}
                       </td>
                     </tr>

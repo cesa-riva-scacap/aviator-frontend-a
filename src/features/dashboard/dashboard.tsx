@@ -78,12 +78,10 @@ export const Dashboard = () => {
         {risk && (
           <Alert
             variant="destructive"
-            className="animate-in fade-in zoom-in border-red-900 bg-red-950/50 text-red-200 duration-200"
+            className="animate-in fade-in zoom-in duration-200"
           >
-            <ShieldAlert className="h-4 w-4 stroke-red-400" />
-            <AlertTitle className="font-bold text-red-400">
-              CRITICAL RISK LIMIT
-            </AlertTitle>
+            <ShieldAlert />
+            <AlertTitle>Critical Risk Alert</AlertTitle>
             <AlertDescription>{risk.message}</AlertDescription>
           </Alert>
         )}
