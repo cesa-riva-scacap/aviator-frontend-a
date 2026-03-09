@@ -39,7 +39,7 @@ socket.onmessage = (event: MessageEvent<string>) => {
     ticksReceivedThisSecond += payload.length;
 
     payload.forEach((tick) => {
-      priceMap.set(tick.symbol, tick);
+      priceMap.set(tick.isin, tick);
     });
   } else if (type === "Risk") {
     // 2. PRIORITY: Risk alerts bypass the timer and go to React IMMEDIATELY
