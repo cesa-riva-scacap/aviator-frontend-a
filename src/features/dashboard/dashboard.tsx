@@ -74,7 +74,6 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen space-y-6 bg-[#0B0F19] p-8 font-sans text-slate-300">
-      {/* HEADER */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div className="flex items-center gap-4">
           <div className="flex h-8 w-8 items-center justify-center rounded border border-teal-500/50 bg-teal-500/20">
@@ -82,45 +81,30 @@ export const Dashboard = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white">
-              Market Making Workstation
+              Quoting Engine - PoC
             </h1>
             <span className="font-mono text-xs text-teal-400">Connected</span>
           </div>
         </div>
-        <div className="flex gap-2 rounded-md border border-slate-800 bg-slate-900 p-1">
-          <button className="rounded bg-slate-800 px-4 py-1.5 text-xs font-medium text-white shadow-sm">
-            Global View
-          </button>
-          <button className="rounded px-4 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-300">
-            Instrument View
-          </button>
+
+        <div className="h-16 w-1/3">
+          {risk && (
+            <Alert
+              variant="destructive"
+              className="animate-in fade-in zoom-in bg-destructive/5 duration-200"
+            >
+              <ShieldAlert />
+              <AlertTitle className="font-bold">CRITICAL RISK ALERT</AlertTitle>
+              <AlertDescription>{risk.message}</AlertDescription>
+            </Alert>
+          )}
         </div>
       </div>
 
-      <div className="h-20">
-        {risk && (
-          <Alert
-            variant="destructive"
-            className="animate-in fade-in zoom-in border-red-900 bg-red-950/40 text-red-200 duration-200"
-          >
-            <ShieldAlert className="stroke-red-400" />
-            <AlertTitle className="font-bold text-red-400">
-              CRITICAL RISK ALERT
-            </AlertTitle>
-            <AlertDescription>{risk.message}</AlertDescription>
-          </Alert>
-        )}
-      </div>
-
-      {/* TOP PANELS */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Quote Streaming Control */}
-        <Card className="col-span-2 border-slate-800 bg-[#111827]">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-400">
-              Quote Streaming (SI)
-            </CardTitle>
-            <span className="text-xs text-slate-500">Global</span>
+        <Card className="bg-[#111827]">
+          <CardHeader>
+            <CardTitle>Quote Streaming (SI)</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-4">
             <button
@@ -141,12 +125,9 @@ export const Dashboard = () => {
             </span>
           </CardContent>
         </Card>
-
-        {/* Telemetry */}
         <MetricsCard fps={fps} workerMetrics={workerMetrics} />
       </div>
 
-      {/* MAIN DATA GRID */}
       <PricesCard prices={prices} />
     </div>
   );
